@@ -1,0 +1,10 @@
+project:
+  name: email-threat-intelligence-platform
+  version: 1.0
+
+model:
+  random_state: 42
+  test_size: 0.2
+
+logging:
+  level: INFO

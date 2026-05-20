@@ -1,0 +1,110 @@
+# ==================================================
+# PYTHON
+# ==================================================
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ==================================================
+# VIRTUAL ENVIRONMENT
+# ==================================================
+
+.venv/
+venv/
+env/
+
+# ==================================================
+# JUPYTER
+# ==================================================
+
+.ipynb_checkpoints/
+
+# ==================================================
+# ENVIRONMENT VARIABLES
+# ==================================================
+
+.env
+
+# ==================================================
+# IDE FILES
+# ==================================================
+
+.vscode/
+.idea/
+
+# ==================================================
+# TEST / CACHE
+# ==================================================
+
+.pytest_cache/
+.coverage
+.mypy_cache/
+
+# ==================================================
+# LOG FILES
+# ==================================================
+
+logs/
+*.log
+
+# ==================================================
+# OPERATING SYSTEM FILES
+# ==================================================
+
+.DS_Store
+Thumbs.db
+
+# ==================================================
+# RAW DATASET (LARGE FILES)
+# ==================================================
+
+data/raw/
+
+# Optional if file becomes large
+# data/interim/
+
+# ==================================================
+# EXPERIMENT MODELS
+# Keep ONLY production model
+# ==================================================
+
+models/logistic_regression_model.pkl
+models/random_forest_model.pkl
+models/naive_bayes_model.pkl
+models/decision_tree_model.pkl
+models/xgboost_model.pkl
+
+models/advanced_logistic_regression_model.pkl
+models/advanced_random_forest_model.pkl
+
+# ==================================================
+# OPTIONAL LARGE DATA
+# Uncomment if repo grows too large
+# ==================================================
+
+# *.csv
+
+# ==================================================
+# KEEP DEPLOYMENT ARTIFACTS
+# ==================================================
+
+!models/advanced_xgboost_model.pkl
+
+!artifacts/advanced_hybrid_tfidf_vectorizer.pkl
+!artifacts/advanced_manual_feature_scaler.pkl
+!artifacts/advanced_hybrid_label_encoder.pkl
+!artifacts/advanced_feature_columns.pkl
+
+# ==================================================
+# KEEP DATA DOCUMENTATION
+# ==================================================
+
+!data/README.md
+
+# ==================================================
+# KEEP NOTEBOOKS
+# ==================================================
+
+!notebooks/

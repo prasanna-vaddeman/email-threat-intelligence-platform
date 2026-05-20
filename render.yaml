@@ -1,0 +1,19 @@
+services:
+
+  - type: web
+
+    name: email-threat-intelligence
+
+    runtime: python
+
+    buildCommand: |
+
+      pip install -r requirements.txt
+
+    startCommand: |
+
+      uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+
+    plan: free
+
+    autoDeploy: true
