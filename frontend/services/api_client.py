@@ -6,34 +6,25 @@ import os
 import requests
 
 
-API=os.getenv(
-
+API = os.getenv(
     "BACKEND_URL",
-
-    "http://127.0.0.1:8000"
-
-)
+    "https://email-threat-intelligence-platform-production.up.railway.app"
+).rstrip("/")
 
 
-def predict_email(
-
-    text:str
-
-):
+def predict_email(text: str):
 
     try:
 
-        response=requests.post(
+        response = requests.post(
 
             f"{API}/email/predict",
 
             json={
-
-                "email_text":text
-
+                "email_text": text
             },
 
-            timeout=30
+            timeout=60
 
         )
 
@@ -45,22 +36,22 @@ def predict_email(
 
         return {
 
-            "prediction":"ERROR",
+            "prediction": "ERROR",
 
-            "spam_probability":0,
+            "spam_probability": 0,
 
-            "threat_score":0,
+            "threat_score": 0,
 
-            "links_found":0,
+            "links_found": 0,
 
-            "html_tags":0,
+            "html_tags": 0,
 
-            "uppercase_ratio":0,
+            "uppercase_ratio": 0,
 
-            "exclamation_count":0,
+            "exclamation_count": 0,
 
-            "threat_level":"UNKNOWN",
+            "threat_level": "UNKNOWN",
 
-            "error":str(e)
+            "error": str(e)
 
         }
