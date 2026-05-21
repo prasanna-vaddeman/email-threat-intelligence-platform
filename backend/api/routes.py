@@ -1,30 +1,18 @@
-# =========================================================
-# IMPORT LIBRARIES
-# =========================================================
+"""
+API Routes
+"""
 
-from fastapi import (
-
-    APIRouter,
-
-    HTTPException
-)
+from fastapi import APIRouter
+from fastapi import HTTPException
 
 from backend.schemas.email_schema import (
-
     EmailRequest,
-
     EmailResponse
 )
 
 from backend.services.inference import (
-
     predict_email
 )
-
-
-# =========================================================
-# API ROUTER
-# =========================================================
 
 router = APIRouter(
 
@@ -32,94 +20,50 @@ router = APIRouter(
 
     tags=[
 
-        "Email Threat Intelligence"
+        "Threat Detection"
+
     ]
+
 )
 
-
-# =========================================================
-# HEALTH CHECK ENDPOINT
-# =========================================================
 
 @router.get(
 
-    "/health",
+    "/health"
 
-    status_code=200
 )
 
-def health_check() -> dict:
-
-    """
-
-    Verify backend availability.
-
-    Used for:
-
-    - Deployment checks
-
-    - Monitoring
-
-    - Service validation
-
-    Returns:
-
-        dict
-
-    """
+def router_health():
 
     return {
 
-        "status": "healthy"
+        "status":
+
+        "healthy"
+
     }
 
-
-# =========================================================
-# EMAIL PREDICTION ENDPOINT
-# =========================================================
 
 @router.post(
 
     "/predict",
 
     response_model=EmailResponse
+
 )
 
-def predict_email_endpoint(
+def predict_endpoint(
 
     request: EmailRequest
 
-) -> EmailResponse:
-
-    """
-
-    Predict email spam threat.
-
-    Args:
-
-        request (EmailRequest)
-
-            Raw email payload.
-
-    Returns:
-
-        EmailResponse
-
-            Prediction result.
-
-    Raises:
-
-        HTTPException
-
-            Internal prediction failure.
-
-    """
+):
 
     try:
 
         return predict_email(
 
             request.email_text
+
         )
 
     except Exception as exc:
@@ -128,9 +72,6 @@ def predict_email_endpoint(
 
             status_code=500,
 
-            detail=(
+            detail=str(exc)
 
-                "Internal prediction error"
-            )
-
-        ) from exc
+        )

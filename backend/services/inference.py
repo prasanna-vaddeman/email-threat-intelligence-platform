@@ -1,154 +1,107 @@
-# =========================================================
-# IMPORT LIBRARIES
-# =========================================================
+"""
+Inference Pipeline
+"""
 
+import time
 import joblib
+import logging
 
 from pathlib import Path
 
 from backend.services.preprocessing import (
-
     clean_text
 )
 
 from backend.services.vectorization import (
-
     vectorize_email
+)
+
+from backend.utils.config import (
+    SPAM_THRESHOLD
+)
+
+from backend.utils.threat_utils import (
+    calculate_risk
 )
 
 from backend.services.feature_engineering import (
 
-    get_threat_level,
+    count_urls,
 
-    build_manual_features
+    count_html_tags,
+
+    count_special_chars,
+
+    count_spam_keywords,
+
+    uppercase_ratio,
+
+    count_exclamations
+
+)
+
+from monitoring.monitoring_service import (
+
+    monitor_inference
+
 )
 
 
-# =========================================================
-# PROJECT PATHS
-# =========================================================
+# ===================================================
+# LOGGER
+# ===================================================
+
+LOGGER = logging.getLogger(
+
+    __name__
+
+)
+
+
+# ===================================================
+# MODEL LOADING
+# ===================================================
 
 BASE_DIR = (
 
     Path(__file__)
+
     .resolve()
+
     .parents[2]
+
 )
-
-MODEL_DIR = (
-
-    BASE_DIR
-    / "models"
-)
-
-ARTIFACT_DIR = (
-
-    BASE_DIR
-    / "artifacts"
-)
-
-
-# =========================================================
-# VALIDATE DIRECTORIES
-# =========================================================
-
-if not MODEL_DIR.exists():
-
-    raise FileNotFoundError(
-
-        f"Models directory missing:\n"
-
-        f"{MODEL_DIR}"
-    )
-
-if not ARTIFACT_DIR.exists():
-
-    raise FileNotFoundError(
-
-        f"Artifacts directory missing:\n"
-
-        f"{ARTIFACT_DIR}"
-    )
-
-
-# =========================================================
-# MODEL FILE PATHS
-# =========================================================
 
 MODEL_PATH = (
 
-    MODEL_DIR
+    BASE_DIR
+
+    / "models"
 
     / "advanced_xgboost_model.pkl"
+
 )
 
-LABEL_ENCODER_PATH = (
-
-    ARTIFACT_DIR
-
-    / "advanced_hybrid_label_encoder.pkl"
-)
-
-
-# =========================================================
-# VALIDATE MODEL FILES
-# =========================================================
 
 if not MODEL_PATH.exists():
 
     raise FileNotFoundError(
 
-        f"Missing model artifact:\n"
+        f"Missing model:\n{MODEL_PATH}"
 
-        f"{MODEL_PATH}"
-    )
-
-if not LABEL_ENCODER_PATH.exists():
-
-    raise FileNotFoundError(
-
-        f"Missing label encoder artifact:\n"
-
-        f"{LABEL_ENCODER_PATH}"
     )
 
 
-# =========================================================
-# LOAD MODEL ARTIFACTS
-# =========================================================
-
-"""
-Load artifacts once during startup.
-
-Avoid repeated loading
-during API requests.
-
-Reduces inference latency.
-
-Improves deployment stability.
-"""
-
-advanced_model = joblib.load(
+MODEL = joblib.load(
 
     MODEL_PATH
-)
 
-advanced_label_encoder = joblib.load(
-
-    LABEL_ENCODER_PATH
 )
 
 
-# =========================================================
-# INFERENCE CONFIGURATION
-# =========================================================
-
-SPAM_THRESHOLD = 0.70
-
-
-# =========================================================
-# MAIN INFERENCE PIPELINE
-# =========================================================
+# ===================================================
+# PREDICTION PIPELINE
+# ===================================================
 
 def predict_email(
 
@@ -157,192 +110,278 @@ def predict_email(
 ) -> dict:
 
     """
-
     Predict email threat.
-
-    Pipeline:
-
-    1. Clean text
-
-    2. Feature engineering
-
-    3. Vectorization
-
-    4. Probability prediction
-
-    5. Threshold decision
-
-    6. Threat scoring
-
-    7. Response generation
 
     Args:
 
-        email_text (str)
+        email_text:
+
+            Raw email content.
 
     Returns:
 
-        dict
-
+        Prediction response.
     """
 
-    # =====================================================
-    # INPUT PROTECTION
-    # =====================================================
+    start = time.time()
+
+
+    # ==========================
+    # EMPTY INPUT PROTECTION
+    # ==========================
 
     email_text = (
 
         email_text
 
-        if email_text
+        or ""
 
-        else ""
     )
 
-    # =====================================================
-    # CLEAN EMAIL
-    # =====================================================
 
-    cleaned_email = (
+    # ==========================
+    # PREPROCESSING
+    # ==========================
 
-        clean_text(
+    cleaned = clean_text(
 
-            email_text
-        )
+        email_text
+
     )
 
-    # =====================================================
-    # FEATURE VECTOR
-    # =====================================================
 
-    features = (
+    # ==========================
+    # VECTORIZATION
+    # ==========================
 
-        vectorize_email(
+    vector = vectorize_email(
 
-            cleaned_email,
+        cleaned,
 
-            email_text
-        )
+        email_text
+
     )
 
-    # =====================================================
-    # MODEL INFERENCE
-    # =====================================================
 
-    try:
+    # ==========================
+    # MODEL PREDICTION
+    # ==========================
 
-        spam_probability = float(
+    probability = float(
 
-            advanced_model
+        MODEL
 
-            .predict_proba(
+        .predict_proba(
 
-                features
+            vector
 
-            )[0][1]
-        )
+        )[0][1]
 
-    except Exception as error:
+    )
 
-        raise RuntimeError(
-
-            f"Model inference failed: "
-
-            f"{str(error)}"
-
-        ) from error
-
-    # =====================================================
-    # THRESHOLD DECISION
-    # =====================================================
 
     prediction = (
 
-        1
+        "spam"
 
-        if spam_probability
+        if probability >= SPAM_THRESHOLD
 
-        >= SPAM_THRESHOLD
+        else "ham"
 
-        else 0
     )
 
-    # =====================================================
-    # LABEL DECODING
-    # =====================================================
 
-    label = (
+    probability_percent = round(
 
-        advanced_label_encoder
+        probability * 100,
 
-        .inverse_transform(
+        2
 
-            [prediction]
-
-        )[0]
     )
 
-    # =====================================================
-    # THREAT LEVEL
-    # =====================================================
 
-    threat_level = (
+    threat_score = int(
 
-        get_threat_level(
+        probability_percent
 
-            spam_probability
-        )
     )
 
-    # =====================================================
-    # FEATURE EXPLAINABILITY
-    # =====================================================
 
-    manual_features = (
+    confidence = round(
 
-        build_manual_features(
+        max(
 
-            email_text
-        )
+            probability,
+
+            1 -
+
+            probability
+
+        ) * 100,
+
+        2
+
     )
 
-    # =====================================================
-    # RESPONSE OBJECT
-    # =====================================================
 
-    return {
+    # ==========================
+    # FEATURE EXTRACTION
+    # ==========================
 
-        "prediction": label,
+    features = {
 
-        "spam_probability": round(
+        "url_count":
 
-            spam_probability,
+            count_urls(
 
-            4
-        ),
+                email_text
 
-        "threat_level": threat_level,
+            ),
 
-        "features": {
+        "html_tag_count":
 
-            key:
+            count_html_tags(
+
+                email_text
+
+            ),
+
+        "uppercase_ratio":
 
             round(
 
-                float(value),
+                uppercase_ratio(
+
+                    email_text
+
+                ),
 
                 4
 
+            ),
+
+        "special_char_count":
+
+            count_special_chars(
+
+                email_text
+
+            ),
+
+        "spam_keyword_count":
+
+            count_spam_keywords(
+
+                email_text
+
+            ),
+
+        "exclamation_count":
+
+            count_exclamations(
+
+                email_text
+
             )
 
-            for key,
+    }
 
-            value
 
-            in manual_features
+    # ==========================
+    # LATENCY
+    # ==========================
 
-            .iloc[0]
+    inference_ms = round(
 
-            .items()
-        }
+        (
+
+            time.time()
+
+            - start
+
+        )
+
+        * 1000,
+
+        2
+
+    )
+
+
+    threat_level = calculate_risk(
+
+        threat_score
+
+    )
+
+
+    # ==========================
+    # MONITORING
+    # ==========================
+
+    try:
+
+        monitor_inference(
+
+            prediction=
+
+                prediction,
+
+            threat_score=
+
+                threat_score,
+
+            confidence=
+
+                confidence,
+
+            features=
+
+                features
+
+        )
+
+    except Exception:
+
+        LOGGER.exception(
+
+            "Monitoring failure"
+
+        )
+
+
+    # ==========================
+    # RESPONSE
+    # ==========================
+
+    return {
+
+        "prediction":
+
+            prediction,
+
+        "spam_probability":
+
+            probability_percent,
+
+        "threat_score":
+
+            threat_score,
+
+        "confidence":
+
+            confidence,
+
+        "inference_ms":
+
+            inference_ms,
+
+        "threat_level":
+
+            threat_level,
+
+        "features":
+
+            features
+
     }

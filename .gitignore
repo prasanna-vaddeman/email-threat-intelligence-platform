@@ -108,3 +108,9 @@ models/advanced_random_forest_model.pkl
 # ==================================================
 
 !notebooks/
+
+monitoring/logs/profiles/*.bin
+
+__pycache__/
+
+*.bin

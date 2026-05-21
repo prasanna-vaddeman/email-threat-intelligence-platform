@@ -1,66 +1,43 @@
-from pydantic import (
+"""
+Email API Schemas
+"""
 
-    BaseModel,
-
-    Field
-)
-
+from pydantic import BaseModel
+from pydantic import Field
 from typing import Dict
 
 
-# =========================================================
-# REQUEST SCHEMA
-# =========================================================
-
-class EmailRequest(
-
-    BaseModel
-):
+class EmailRequest(BaseModel):
 
     """
-
-    Input email payload.
-
+    Request payload
     """
 
     email_text: str = Field(
 
         ...,
 
-        min_length=1,
+        min_length=1
 
-        description=(
-
-            "Raw email text "
-            "for spam prediction"
-        )
     )
 
 
-# =========================================================
-# RESPONSE SCHEMA
-# =========================================================
-
-class EmailResponse(
-
-    BaseModel
-):
+class EmailResponse(BaseModel):
 
     """
-
-    Prediction response.
-
+    Prediction response
     """
 
     prediction: str
 
     spam_probability: float
 
+    threat_score: int
+
+    confidence: float
+
+    inference_ms: float
+
     threat_level: str
 
-    features: Dict[
-
-        str,
-
-        float
-    ]
+    features: Dict[str, float]
