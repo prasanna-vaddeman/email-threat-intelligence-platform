@@ -26,7 +26,19 @@ if DATABASE_URL:
 
             pool_pre_ping=True,
 
-            pool_recycle=300
+            pool_recycle=300,
+
+            echo=True
+
+        )
+
+        connection = engine.connect()
+
+        connection.close()
+
+        LOGGER.info(
+
+            "Database connected successfully"
 
         )
 
@@ -37,12 +49,6 @@ if DATABASE_URL:
             autoflush=False,
 
             bind=engine
-
-        )
-
-        LOGGER.info(
-
-            "Database connected"
 
         )
 
@@ -58,6 +64,6 @@ else:
 
     LOGGER.warning(
 
-        "DATABASE_URL missing. Storage disabled."
+        "DATABASE_URL missing"
 
     )
