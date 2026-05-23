@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from backend.storage import postgres
+from backend.storage.postgres import SessionLocal
 import logging
 
 
@@ -17,7 +17,7 @@ def save_prediction(
 
 ):
 
-    if postgres.SessionLocal is None:
+    if SessionLocal is None:
 
         LOGGER.warning(
 
@@ -28,7 +28,7 @@ def save_prediction(
         return
 
 
-    db = postgres.SessionLocal()
+    db = SessionLocal()
 
     try:
 
