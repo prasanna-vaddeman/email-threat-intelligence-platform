@@ -46,6 +46,12 @@ from monitoring.monitoring_service import (
 
 )
 
+from backend.storage.prediction_store import (
+
+    save_prediction
+
+)
+
 
 # ===================================================
 # LOGGER
@@ -65,9 +71,7 @@ LOGGER = logging.getLogger(
 BASE_DIR = (
 
     Path(__file__)
-
     .resolve()
-
     .parents[2]
 
 )
@@ -75,9 +79,7 @@ BASE_DIR = (
 MODEL_PATH = (
 
     BASE_DIR
-
     / "models"
-
     / "advanced_xgboost_model.pkl"
 
 )
@@ -110,24 +112,14 @@ def predict_email(
 ) -> dict:
 
     """
-    Predict email threat.
-
-    Args:
-
-        email_text:
-
-            Raw email content.
-
-    Returns:
-
-        Prediction response.
+    Predict email threat
     """
 
     start = time.time()
 
 
     # ==========================
-    # EMPTY INPUT PROTECTION
+    # INPUT PROTECTION
     # ==========================
 
     email_text = (
@@ -140,7 +132,7 @@ def predict_email(
 
 
     # ==========================
-    # PREPROCESSING
+    # PREPROCESS
     # ==========================
 
     cleaned = clean_text(
@@ -213,9 +205,7 @@ def predict_email(
 
             probability,
 
-            1 -
-
-            probability
+            1 - probability
 
         ) * 100,
 
@@ -316,36 +306,73 @@ def predict_email(
 
 
     # ==========================
-    # MONITORING
+    # WHYLOGS MONITORING
     # ==========================
 
     try:
 
         monitor_inference(
 
-            prediction=
+            prediction=prediction,
 
-                prediction,
+            threat_score=threat_score,
 
-            threat_score=
+            confidence=confidence,
 
-                threat_score,
-
-            confidence=
-
-                confidence,
-
-            features=
-
-                features
+            features=features
 
         )
 
-    except Exception:
+    except Exception as exc:
 
         LOGGER.exception(
 
-            "Monitoring failure"
+            f"Monitoring failure: {exc}"
+
+        )
+
+
+    # ==========================
+    # SUPABASE STORAGE
+    # ==========================
+
+    try:
+
+        save_prediction(
+
+            prediction=prediction,
+
+            spam_probability=probability_percent,
+
+            threat_score=threat_score,
+
+            latency_ms=inference_ms,
+
+            links_found=features[
+
+                "url_count"
+
+            ],
+
+            uppercase_ratio=features[
+
+                "uppercase_ratio"
+
+            ]
+
+        )
+
+        LOGGER.info(
+
+            "Prediction stored successfully"
+
+        )
+
+    except Exception as exc:
+
+        LOGGER.exception(
+
+            f"Prediction database save failed: {exc}"
 
         )
 
