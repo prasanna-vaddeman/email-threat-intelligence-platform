@@ -1,6 +1,5 @@
 from sqlalchemy import text
-from backend.storage.postgres import SessionLocal
-
+from backend.storage import postgres
 import logging
 
 
@@ -18,7 +17,18 @@ def save_prediction(
 
 ):
 
-    db = SessionLocal()
+    if postgres.SessionLocal is None:
+
+        LOGGER.warning(
+
+            "Database unavailable"
+
+        )
+
+        return
+
+
+    db = postgres.SessionLocal()
 
     try:
 
