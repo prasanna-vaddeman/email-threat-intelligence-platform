@@ -52,10 +52,18 @@ from backend.storage.prediction_store import (
 
 )
 
+from backend.monitoring.metrics import (
 
-# ===================================================
-# LOGGER
-# ===================================================
+    PREDICTION_COUNTER,
+
+    SPAM_COUNTER,
+
+    ERROR_COUNTER,
+
+    LATENCY
+
+)
+
 
 LOGGER = logging.getLogger(
 
@@ -64,22 +72,23 @@ LOGGER = logging.getLogger(
 )
 
 
-# ===================================================
-# MODEL LOADING
-# ===================================================
-
 BASE_DIR = (
 
     Path(__file__)
+
     .resolve()
+
     .parents[2]
 
 )
 
+
 MODEL_PATH = (
 
     BASE_DIR
+
     / "models"
+
     / "advanced_xgboost_model.pkl"
 
 )
@@ -101,373 +110,348 @@ MODEL = joblib.load(
 )
 
 
-# ===================================================
-# PREDICTION PIPELINE
-# ===================================================
-
 def predict_email(
 
     email_text: str
 
 ) -> dict:
 
-    """
-    Predict email threat
-    """
-
     start = time.time()
 
 
-    # ==========================
-    # INPUT PROTECTION
-    # ==========================
+    try:
 
-    email_text = (
+        email_text = (
 
-        email_text
+            email_text
 
-        or ""
+            or ""
 
-    )
+        )
 
 
-    # ==========================
-    # PREPROCESS
-    # ==========================
+        cleaned = clean_text(
 
-    cleaned = clean_text(
+            email_text
 
-        email_text
-
-    )
+        )
 
 
-    # ==========================
-    # VECTORIZATION
-    # ==========================
+        vector = vectorize_email(
 
-    vector = vectorize_email(
+            cleaned,
 
-        cleaned,
+            email_text
 
-        email_text
-
-    )
+        )
 
 
-    # ==========================
-    # MODEL PREDICTION
-    # ==========================
+        probability = float(
 
-    probability = float(
+            MODEL
 
-        MODEL
+            .predict_proba(
 
-        .predict_proba(
+                vector
 
-            vector
+            )[0][1]
 
-        )[0][1]
-
-    )
+        )
 
 
-    prediction = (
+        prediction = (
 
-        "spam"
+            "spam"
 
-        if probability >= SPAM_THRESHOLD
+            if probability >= SPAM_THRESHOLD
 
-        else "ham"
+            else "ham"
 
-    )
-
-
-    probability_percent = round(
-
-        probability * 100,
-
-        2
-
-    )
+        )
 
 
-    threat_score = int(
+        probability_percent = round(
 
-        probability_percent
+            probability * 100,
 
-    )
+            2
 
-
-    confidence = round(
-
-        max(
-
-            probability,
-
-            1 - probability
-
-        ) * 100,
-
-        2
-
-    )
+        )
 
 
-    # ==========================
-    # FEATURE EXTRACTION
-    # ==========================
+        threat_score = int(
 
-    features = {
+            probability_percent
 
-        "url_count":
+        )
 
-            count_urls(
 
-                email_text
+        confidence = round(
 
-            ),
+            max(
 
-        "html_tag_count":
+                probability,
 
-            count_html_tags(
+                1 - probability
 
-                email_text
+            ) * 100,
 
-            ),
+            2
 
-        "uppercase_ratio":
+        )
 
-            round(
 
-                uppercase_ratio(
+        features = {
+
+            "url_count":
+
+                count_urls(
 
                     email_text
 
                 ),
 
-                4
+            "html_tag_count":
 
-            ),
+                count_html_tags(
 
-        "special_char_count":
+                    email_text
 
-            count_special_chars(
+                ),
 
-                email_text
+            "uppercase_ratio":
 
-            ),
+                round(
 
-        "spam_keyword_count":
+                    uppercase_ratio(
 
-            count_spam_keywords(
+                        email_text
 
-                email_text
+                    ),
 
-            ),
+                    4
 
-        "exclamation_count":
+                ),
 
-            count_exclamations(
+            "special_char_count":
 
-                email_text
+                count_special_chars(
+
+                    email_text
+
+                ),
+
+            "spam_keyword_count":
+
+                count_spam_keywords(
+
+                    email_text
+
+                ),
+
+            "exclamation_count":
+
+                count_exclamations(
+
+                    email_text
+
+                )
+
+        }
+
+
+        inference_ms = round(
+
+            (
+
+                time.time()
+
+                - start
 
             )
 
-    }
+            * 1000,
 
-
-    # ==========================
-    # LATENCY
-    # ==========================
-
-    inference_ms = round(
-
-        (
-
-            time.time()
-
-            - start
+            2
 
         )
 
-        * 1000,
 
-        2
+        threat_level = calculate_risk(
 
-    )
-
-
-    threat_level = calculate_risk(
-
-        threat_score
-
-    )
-
-
-    # ==========================
-    # WHYLOGS MONITORING
-    # ==========================
-
-    try:
-
-        monitor_inference(
-
-            prediction=prediction,
-
-            threat_score=threat_score,
-
-            confidence=confidence,
-
-            features=features
-
-        )
-
-    except Exception as exc:
-
-        LOGGER.exception(
-
-            f"Monitoring failure: {exc}"
-
-        )
-
-    # ==========================
-    # SUPABASE STORAGE
-    # ==========================
-
-    try:
-
-        save_prediction(
-
-            prediction=
-
-            prediction,
-
-            spam_probability=
-
-            probability_percent,
-
-            threat_score=
-
-            threat_score,
-
-            confidence=
-
-            confidence,
-
-            threat_level=
-
-            threat_level,
-
-            latency_ms=
-
-            inference_ms,
-
-            links_found=
-
-            features[
-
-                "url_count"
-
-            ],
-
-            url_count=
-
-            features[
-
-                "url_count"
-
-            ],
-
-            html_tag_count=
-
-            features[
-
-                "html_tag_count"
-
-            ],
-
-            uppercase_ratio=
-
-            features[
-
-                "uppercase_ratio"
-
-            ],
-
-            special_char_count=
-
-            features[
-
-                "special_char_count"
-
-            ],
-
-            spam_keyword_count=
-
-            features[
-
-                "spam_keyword_count"
-
-            ],
-
-            exclamation_count=
-
-            features[
-
-                "exclamation_count"
-
-            ]
-
-        )
-
-        LOGGER.info(
-
-            "Prediction stored successfully"
-
-        )
-
-    except Exception as exc:
-
-        LOGGER.exception(
-
-            f"Prediction database save failed: {exc}"
+            threat_score
 
         )
 
 
-    # ==========================
-    # RESPONSE
-    # ==========================
+        # ======================
+        # PROMETHEUS
+        # ======================
 
-    return {
+        PREDICTION_COUNTER.inc()
 
-        "prediction":
 
-            prediction,
+        if prediction == "spam":
 
-        "spam_probability":
+            SPAM_COUNTER.inc()
 
-            probability_percent,
 
-        "threat_score":
+        LATENCY.observe(
 
-            threat_score,
+            inference_ms
 
-        "confidence":
+        )
 
-            confidence,
 
-        "inference_ms":
+        # ======================
+        # WHYLOGS
+        # ======================
 
-            inference_ms,
+        try:
 
-        "threat_level":
+            monitor_inference(
 
-            threat_level,
+                prediction=
 
-        "features":
+                prediction,
 
-            features
+                threat_score=
 
-    }
+                threat_score,
+
+                confidence=
+
+                confidence,
+
+                features=
+
+                features
+
+            )
+
+        except Exception as exc:
+
+            LOGGER.exception(
+
+                f"Monitoring failure: {exc}"
+
+            )
+
+        # DATABASE
+
+        try:
+
+            save_prediction(
+
+                prediction=
+
+                prediction,
+
+                spam_probability=
+
+                probability_percent,
+
+                threat_score=
+
+                threat_score,
+
+                confidence=
+
+                confidence,
+
+                threat_level=
+
+                threat_level,
+
+                latency_ms=
+
+                inference_ms,
+
+                links_found=
+
+                int(
+
+                    features["url_count"]
+
+                ),
+
+                url_count=
+
+                features["url_count"],
+
+                html_tag_count=
+
+                features["html_tag_count"],
+
+                uppercase_ratio=
+
+                features["uppercase_ratio"],
+
+                special_char_count=
+
+                features["special_char_count"],
+
+                spam_keyword_count=
+
+                features["spam_keyword_count"],
+
+                exclamation_count=
+
+                features["exclamation_count"]
+
+            )
+
+            LOGGER.info(
+
+                "Prediction stored successfully"
+
+            )
+
+        except Exception as exc:
+
+            ERROR_COUNTER.inc()
+
+            LOGGER.exception(
+
+                f"Database save failed: {exc}"
+
+            )
+
+
+        return {
+
+            "prediction":
+
+                prediction,
+
+            "spam_probability":
+
+                probability_percent,
+
+            "threat_score":
+
+                threat_score,
+
+            "confidence":
+
+                confidence,
+
+            "inference_ms":
+
+                inference_ms,
+
+            "threat_level":
+
+                threat_level,
+
+            "features":
+
+                features
+
+        }
+
+    except Exception:
+
+        ERROR_COUNTER.inc()
+
+        raise

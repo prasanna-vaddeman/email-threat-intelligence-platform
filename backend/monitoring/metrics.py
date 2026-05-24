@@ -6,7 +6,7 @@ PREDICTION_COUNTER = Counter(
 
     "email_predictions_total",
 
-    "Total email predictions"
+    "Total predictions"
 
 )
 
@@ -16,6 +16,15 @@ SPAM_COUNTER = Counter(
     "spam_predictions_total",
 
     "Spam predictions"
+
+)
+
+
+ERROR_COUNTER = Counter(
+
+    "prediction_errors_total",
+
+    "Prediction errors"
 
 )
 

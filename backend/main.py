@@ -4,6 +4,12 @@ FastAPI Entry Point
 
 from fastapi import FastAPI
 
+from prometheus_client import (
+
+    make_asgi_app
+
+)
+
 from backend.api.routes import router
 
 
@@ -19,6 +25,25 @@ app = FastAPI(
 
 )
 
+
+# ===================================
+# PROMETHEUS METRICS
+# ===================================
+
+metrics_app = make_asgi_app()
+
+app.mount(
+
+    "/metrics",
+
+    metrics_app
+
+)
+
+
+# ===================================
+# ROOT
+# ===================================
 
 @app.get(
 
@@ -37,6 +62,10 @@ def root():
     }
 
 
+# ===================================
+# HEALTH
+# ===================================
+
 @app.get(
 
     "/health"
@@ -53,6 +82,10 @@ def health():
 
     }
 
+
+# ===================================
+# ROUTES
+# ===================================
 
 app.include_router(
 
