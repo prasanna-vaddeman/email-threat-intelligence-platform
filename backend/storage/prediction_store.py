@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from backend.storage.postgres import SessionLocal
+
 import logging
 
 
@@ -11,9 +12,21 @@ def save_prediction(
     prediction,
     spam_probability,
     threat_score,
+
+    confidence,
+    threat_level,
+
     latency_ms,
+
     links_found,
-    uppercase_ratio
+
+    url_count,
+    html_tag_count,
+    uppercase_ratio,
+
+    special_char_count,
+    spam_keyword_count,
+    exclamation_count
 
 ):
 
@@ -34,25 +47,63 @@ def save_prediction(
 
         query = text("""
 
-        INSERT INTO predictions(
+        INSERT INTO predictions (
 
             prediction,
+
             spam_probability,
+
             threat_score,
+
+            confidence,
+
+            threat_level,
+
             latency_ms,
+
             links_found,
-            uppercase_ratio
+
+            url_count,
+
+            html_tag_count,
+
+            uppercase_ratio,
+
+            special_char_count,
+
+            spam_keyword_count,
+
+            exclamation_count
 
         )
 
-        VALUES(
+        VALUES (
 
             :prediction,
+
             :spam_probability,
+
             :threat_score,
+
+            :confidence,
+
+            :threat_level,
+
             :latency_ms,
+
             :links_found,
-            :uppercase_ratio
+
+            :url_count,
+
+            :html_tag_count,
+
+            :uppercase_ratio,
+
+            :special_char_count,
+
+            :spam_keyword_count,
+
+            :exclamation_count
 
         )
 
@@ -64,17 +115,57 @@ def save_prediction(
 
             {
 
-                "prediction": str(prediction),
+                "prediction":
 
-                "spam_probability": float(spam_probability),
+                    str(prediction),
 
-                "threat_score": float(threat_score),
+                "spam_probability":
 
-                "latency_ms": float(latency_ms),
+                    float(spam_probability),
 
-                "links_found": int(links_found),
+                "threat_score":
 
-                "uppercase_ratio": float(uppercase_ratio)
+                    float(threat_score),
+
+                "confidence":
+
+                    float(confidence),
+
+                "threat_level":
+
+                    str(threat_level),
+
+                "latency_ms":
+
+                    float(latency_ms),
+
+                "links_found":
+
+                    int(links_found),
+
+                "url_count":
+
+                    float(url_count),
+
+                "html_tag_count":
+
+                    float(html_tag_count),
+
+                "uppercase_ratio":
+
+                    float(uppercase_ratio),
+
+                "special_char_count":
+
+                    float(special_char_count),
+
+                "spam_keyword_count":
+
+                    float(spam_keyword_count),
+
+                "exclamation_count":
+
+                    float(exclamation_count)
 
             }
 
@@ -88,15 +179,21 @@ def save_prediction(
 
         )
 
-    except Exception as e:
-
-        db.rollback()
+    except Exception as exc:
 
         LOGGER.exception(
 
-            f"Prediction storage failed: {e}"
+            f"Prediction storage failed: {exc}"
 
         )
+
+        try:
+
+            db.rollback()
+
+        except Exception:
+
+            pass
 
     finally:
 
