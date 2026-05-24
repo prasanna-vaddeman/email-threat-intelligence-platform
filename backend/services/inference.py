@@ -331,7 +331,6 @@ def predict_email(
 
         )
 
-
     # ==========================
     # SUPABASE STORAGE
     # ==========================
@@ -340,23 +339,83 @@ def predict_email(
 
         save_prediction(
 
-            prediction=prediction,
+            prediction=
 
-            spam_probability=probability_percent,
+            prediction,
 
-            threat_score=threat_score,
+            spam_probability=
 
-            latency_ms=inference_ms,
+            probability_percent,
 
-            links_found=features[
+            threat_score=
+
+            threat_score,
+
+            confidence=
+
+            confidence,
+
+            threat_level=
+
+            threat_level,
+
+            latency_ms=
+
+            inference_ms,
+
+            links_found=
+
+            features[
 
                 "url_count"
 
             ],
 
-            uppercase_ratio=features[
+            url_count=
+
+            features[
+
+                "url_count"
+
+            ],
+
+            html_tag_count=
+
+            features[
+
+                "html_tag_count"
+
+            ],
+
+            uppercase_ratio=
+
+            features[
 
                 "uppercase_ratio"
+
+            ],
+
+            special_char_count=
+
+            features[
+
+                "special_char_count"
+
+            ],
+
+            spam_keyword_count=
+
+            features[
+
+                "spam_keyword_count"
+
+            ],
+
+            exclamation_count=
+
+            features[
+
+                "exclamation_count"
 
             ]
 

@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 import logging
 import os
 
@@ -8,11 +9,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 DATABASE_URL = os.getenv(
+
     "DATABASE_URL"
+
 )
 
 
 engine = None
+
 SessionLocal = None
 
 
@@ -28,7 +32,7 @@ if DATABASE_URL:
 
             pool_recycle=300,
 
-            echo=True
+            echo=False
 
         )
 

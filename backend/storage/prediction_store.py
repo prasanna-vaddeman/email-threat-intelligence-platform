@@ -1,5 +1,10 @@
 from sqlalchemy import text
-from backend.storage.postgres import SessionLocal
+
+from backend.storage.postgres import (
+
+    SessionLocal
+
+)
 
 import logging
 
@@ -10,10 +15,13 @@ LOGGER = logging.getLogger(__name__)
 def save_prediction(
 
     prediction,
+
     spam_probability,
+
     threat_score,
 
     confidence,
+
     threat_level,
 
     latency_ms,
@@ -21,11 +29,15 @@ def save_prediction(
     links_found,
 
     url_count,
+
     html_tag_count,
+
     uppercase_ratio,
 
     special_char_count,
+
     spam_keyword_count,
+
     exclamation_count
 
 ):
@@ -181,19 +193,23 @@ def save_prediction(
 
     except Exception as exc:
 
-        LOGGER.exception(
-
-            f"Prediction storage failed: {exc}"
-
-        )
-
         try:
 
             db.rollback()
 
         except Exception:
 
-            pass
+            LOGGER.exception(
+
+                "Rollback failed"
+
+            )
+
+        LOGGER.exception(
+
+            f"Prediction storage failed: {exc}"
+
+        )
 
     finally:
 
