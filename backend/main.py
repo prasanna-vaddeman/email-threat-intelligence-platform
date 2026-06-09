@@ -3,11 +3,10 @@ FastAPI Entry Point
 """
 
 from fastapi import FastAPI
+from fastapi.responses import Response
 
 from prometheus_client import (
-
     make_asgi_app
-
 )
 
 from backend.api.routes import router
@@ -15,11 +14,7 @@ from backend.api.routes import router
 
 app = FastAPI(
 
-    title=(
-
-        "Email Threat Intelligence API"
-
-    ),
+    title="Email Threat Intelligence API",
 
     version="2.0.0"
 
@@ -45,19 +40,12 @@ app.mount(
 # ROOT
 # ===================================
 
-@app.get(
-
-    "/"
-
-)
-
+@app.get("/")
 def root():
 
     return {
 
-        "message":
-
-        "API Running"
+        "message": "API Running"
 
     }
 
@@ -66,21 +54,24 @@ def root():
 # HEALTH
 # ===================================
 
-@app.get(
-
-    "/health"
-
-)
-
+@app.get("/health")
 def health():
 
     return {
 
-        "status":
+        "status": "healthy",
 
-        "healthy"
+        "service": "email-threat-intelligence-api",
+
+        "version": "2.0.0"
 
     }
+
+
+@app.head("/health")
+def health_head():
+
+    return Response(status_code=200)
 
 
 # ===================================

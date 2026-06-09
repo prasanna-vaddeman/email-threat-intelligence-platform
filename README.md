@@ -1,4 +1,4 @@
-# 🛡️ Email Threat Intelligence Platform
+~~# 🛡️ Email Threat Intelligence Platform
 
 > **Production-grade Machine Learning system for intelligent email threat detection and analysis**
 
@@ -772,4 +772,4 @@ Having issues? Please:
 
 **Last Updated:** May 2026  
 **Status:** Production Live ✅  
-**Maintained By:** Prasanna Kumar
+**Maintained By:** Prasanna Kumar~~
