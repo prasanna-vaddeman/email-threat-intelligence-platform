@@ -114,3 +114,13 @@ monitoring/logs/profiles/*.bin
 __pycache__/
 
 *.bin
+
+*.sqlite3
+
+htmlcov/
+
+coverage.xml
+
+dist/
+
+build/
