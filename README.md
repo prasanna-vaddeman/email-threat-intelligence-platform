@@ -123,140 +123,24 @@ Response Generation
 
 ## Project Structure
 
-```
+```text
 email-threat-intelligence-platform/
-│
-├── artifacts/
-│   ├── advanced_feature_columns.pkl
-│   ├── advanced_hybrid_tfidf_vectorizer.pkl
-│   ├── advanced_manual_feature_scaler.pkl
-│   ├── hybrid_tfidf_vectorizer.pkl
-│   ├── label_encoder.pkl
-│   ├── manual_feature_scaler.pkl
-│   └── tfidf_vectorizer.pkl
-│
-├── backend/
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── monitoring/
-│   │   ├── __init__.py
-│   │   └── metrics.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── email_schema.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── feature_engineering.py
-│   │   ├── inference.py
-│   │   ├── preprocessing.py
-│   │   └── vectorization.py
-│   ├── storage/
-│   │   ├── __init__.py
-│   │   ├── postgres.py
-│   │   └── prediction_store.py
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── logger.py
-│   │   └── threat_utils.py
-│   ├── __init__.py
-│   └── main.py
-│
-├── configs/
-│   └── config.yaml
-│
-├── data/
-│   ├── feature_engineered/
-│   │   ├── advanced_emails_feature_engineered.csv
-│   │   └── emails_feature_engineered.csv
-│   ├── interim/
-│   │   └── emails_cleaned.csv
-│   ├── processed/
-│   │   └── emails_dataset.csv
-│   └── raw/
-│       ├── easy_ham_1/
-│       ├── easy_ham_2/
-│       ├── spam_1/
-│       └── spam_2/
-│
-├── deployment/
-│   └── monitoring/
-│       ├── Dockerfile
-│       └── prometheus.yml
-│
-├── docs/
-│   ├── architecture.md
-│   ├── deployment.md
-│   └── monitoring.md
-│
-├── frontend/
-│   ├── .streamlit/
-│   │   └── config.toml
-│   ├── components/
-│   │   ├── __init__.py
-│   │   ├── feature_panel.py
-│   │   ├── header.py
-│   │   ├── input_panel.py
-│   │   ├── kpi_cards.py
-│   │   ├── model_metrics.py
-│   │   ├── prediction_payload.py
-│   │   ├── sidebar.py
-│   │   ├── system_health.py
-│   │   └── threat_panel.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── api_client.py
-│   └── app.py
-│
-├── images/
-│   └── architecture.png
-│
-├── logs/
-│   └── app.log
-│
-├── models/
-│   ├── advanced_logistic_regression_model.pkl
-│   ├── advanced_random_forest_model.pkl
-│   ├── advanced_xgboost_model.pkl
-│   ├── decision_tree_model.pkl
-│   ├── logistic_regression_model.pkl
-│   ├── naive_bayes_model.pkl
-│   ├── random_forest_model.pkl
-│   └── xgboost_model.pkl
-│
-├── monitoring/
-│   ├── logs/
-│   │   └── profiles/
-│   ├── __init__.py
-│   ├── monitoring_service.py
-│   ├── whylabs_config.py
-│   └── whylogs_logger.py
-│
-├── notebooks/
-│   ├── 01_project_understanding.ipynb
-│   ├── 02_email_parsing_experiments.ipynb
-│   ├── 03_text_preprocessing.ipynb
-│   ├── 04_exploratory_data_analysis.ipynb
-│   ├── 05_feature_engineering.ipynb
-│   ├── 06_model_training.ipynb
-│   └── 07_inference_pipeline.ipynb
-│
-├── tests/
-│   ├── __init__.py
-│   ├── test_health.py
-│   ├── test_invalid_request.py
-│   ├── test_metrics.py
-│   ├── test_predict.py
-│   └── test_preprocessing.py
-│
-├── .env
-├── .env.example
-├── .gitignore
+
+├── backend/            # FastAPI backend services
+├── frontend/           # Streamlit frontend application
+├── monitoring/         # WhyLogs monitoring
+├── tests/              # Pytest test suite
+├── docs/               # Project documentation
+├── models/             # Trained ML models
+├── artifacts/          # Vectorizers and scalers
+├── deployment/         # Prometheus configuration
+├── notebooks/          # Development notebooks
+├── images/             # Architecture diagrams and screenshots
+
+├── README.md
+├── requirements.txt
 ├── Procfile
-├── pyproject.toml
-├── pytest.ini
-└── README.md
+└── pytest.ini
 ```
 
 ---
